@@ -1,0 +1,46 @@
+name: Build and Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout do código
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Login no Amazon ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    # Build da imagem Docker
+    - name: Build Docker image
+      run: |
+        IMAGE_TAG=latest
+        AWS_ACCOUNT_ID=422438063567
+        AWS_REGION=us-east-1
+        ECR_REPOSITORY=snacktech
+        IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+        docker build -t $IMAGE_URI .
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+    # Push da imagem para o Amazon ECR
+    - name: Push Docker image to Amazon ECR
+      run: |
+        docker push $IMAGE_URI
+
+    # Deploy no Kubernetes
+    - name: Deploy to Kubernetes
+      env:
+        IMAGE_URI: ${{ env.IMAGE_URI }}
+      run: |
+        DEPLOYMENT_NAME=snacktech-deployment
+        CONTAINER_NAME=snack-tech-api-deployment
+        kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$IMAGE_URI
+        kubectl apply -f k8s/deployment.yaml
