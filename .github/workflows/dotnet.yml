@@ -1,4 +1,4 @@
-# This workflow will build a .NET project
+# This workflow will build and test a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: build and test
@@ -30,17 +30,3 @@ jobs:
       run: dotnet build --no-restore ./src/SnackTech.sln
     - name: Test
       run: dotnet test --no-build --verbosity normal ./src/SnackTech.sln
-
-    - name: Install SonarScanner
-      run: |
-        dotnet tool install --global dotnet-sonarscanner
-
-    - name: Run SonarScanner
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        dotnet-sonarscanner begin /k:"gfsouzacps_SnackTech" /o:"gfsouzacps" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
-
-        dotnet build ./src/SnackTech.sln
-
-        dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"

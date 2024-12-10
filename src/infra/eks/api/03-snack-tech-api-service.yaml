@@ -8,7 +8,8 @@ spec:
   selector:
     app: snack-tech-api-pod
   ports:
-  - port: 8080
+  - name: port8080  
+    port: 8080    
     targetPort: 8080
     protocol: TCP
   type: LoadBalancer
